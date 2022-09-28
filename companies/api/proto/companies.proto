@@ -1,0 +1,59 @@
+syntax = "proto3";
+package companies;
+
+option go_package="./;company";
+import "google/protobuf/timestamp.proto";
+
+
+service Company {
+ rpc CreateCompany (CreateCompanyRequest) returns (CreateCompanyResponse) {}
+ rpc UpdateCompany (UpdateCompanyRequest) returns (UpdateCompanyResponse) {}
+ rpc DeleteCompany (DeleteCompanyRequest) returns (DeleteCompanyResponse) {}
+ rpc ReadCompanyByID (ReadCompanyByIdRequest) returns (ReadCompanyByIdResponse) {}
+}
+
+message CreateCompanyRequest {
+ string name = 1;
+ uint32 inn = 2;
+ string address = 3;
+}
+
+message CreateCompanyResponse{
+    CompanyResponse response =1;
+}
+
+message UpdateCompanyRequest{
+    string id = 1;
+    string name = 2;
+    uint32 inn = 3;
+    string address = 4;
+}
+
+message UpdateCompanyResponse{
+    CompanyResponse response =1;
+}
+
+message DeleteCompanyRequest {
+    string id = 1;
+}
+
+message DeleteCompanyResponse {
+    bool success = 1;
+}
+
+message ReadCompanyByIdRequest {
+    string id = 1;
+}
+
+message ReadCompanyByIdResponse {
+    CompanyResponse response =1;
+}
+
+message CompanyResponse {
+    string id = 1;
+    string name = 2;
+    uint32 inn = 3;
+    string address = 4;
+    google.protobuf.Timestamp createdAt = 5;
+    google.protobuf.Timestamp modifiedAt = 6;
+}
