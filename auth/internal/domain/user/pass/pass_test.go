@@ -1,6 +1,7 @@
 package pass
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -33,9 +34,13 @@ func TestNewPass(t *testing.T) {
 		want  *Pass
 		err   error
 	}{
-		"success":                   {input: "Password12!", want: testPass, err: nil},
-		"length err":                {input: "Pass", want: nil, err: ErrPassLength},
-		"no special characters err": {input: "Password12", want: nil, err: ErrNoSpecialCharacter},
+		"success":                     {input: "Password12!", want: testPass, err: nil},
+		"length err":                  {input: "Ps12!", want: nil, err: ErrPassLength},
+		"no special characters err":   {input: "Password12", want: nil, err: ErrNoSpecialCharacter},
+		"no numbers err":              {input: "Password!", want: nil, err: ErrNoNumber},
+		"no upper case err":           {input: "password1!", want: nil, err: ErrNoUpperCaseLetter},
+		"no lower case err":           {input: "PASSWORD1!", want: nil, err: ErrNoLowerCaseLetter},
+		"no number and uppercase err": {input: "password!", want: nil, err: fmt.Errorf("%s:%s", ErrNoUpperCaseLetter, ErrNoNumber)},
 	}
 
 	for testPass, testCase := range tests {

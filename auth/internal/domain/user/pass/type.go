@@ -11,11 +11,11 @@ const (
 )
 
 var (
-	ErrPassLength         = fmt.Errorf("provided pass is too short, min length: %d", MinLength)
-	ErrNoUpperCaseLetter  = errors.New("pass must contain at least one upper case letter")
-	ErrNoLowerCaseLetter  = errors.New("pass must contain at least one lower case letter")
-	ErrNoNumberInPass     = errors.New("pass must contain at least one number")
-	ErrNoSpecialCharacter = errors.New("pass must contain at least one special character")
+	ErrPassLength         = fmt.Errorf("is too short, min length: %d", MinLength)
+	ErrNoUpperCaseLetter  = errors.New("must contain at least one upper case letter")
+	ErrNoLowerCaseLetter  = errors.New("must contain at least one lower case letter")
+	ErrNoNumber           = errors.New("must contain at least one number")
+	ErrNoSpecialCharacter = errors.New("must contain at least one special character")
 )
 
 type Pass string
@@ -43,7 +43,7 @@ func vaildatePassword(field string) (err error) {
 	)
 
 	if len(field) < MinLength {
-		wrapError(err, ErrPassLength)
+		err = wrapError(err, ErrPassLength)
 	}
 
 	for _, c := range field {
@@ -60,16 +60,16 @@ func vaildatePassword(field string) (err error) {
 	}
 
 	if !special {
-		wrapError(err, ErrNoSpecialCharacter)
+		err = wrapError(err, ErrNoSpecialCharacter)
 	}
 	if !number {
-		wrapError(err, ErrNoNumberInPass)
+		err = wrapError(err, ErrNoNumber)
 	}
 	if !lower {
-		wrapError(err, ErrNoLowerCaseLetter)
+		err = wrapError(err, ErrNoLowerCaseLetter)
 	}
 	if !upper {
-		wrapError(err, ErrNoUpperCaseLetter)
+		err = wrapError(err, ErrNoUpperCaseLetter)
 	}
 
 	return
@@ -77,7 +77,7 @@ func vaildatePassword(field string) (err error) {
 
 func wrapError(err, appendError error) error {
 	if err != nil {
-		return fmt.Errorf("%s:%w", appendError.Error(), err)
+		return fmt.Errorf("%s:%s", appendError.Error(), err.Error())
 	}
 	return appendError
 }

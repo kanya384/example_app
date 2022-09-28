@@ -1,7 +1,8 @@
 CREATE TYPE "user_role" AS ENUM (
   'administrator',
   'deliveryman',
-  'root'
+  'root',
+  'user'
 );
 
 CREATE TYPE "device_types" AS ENUM (
@@ -28,7 +29,7 @@ CREATE TABLE "device" (
   "device_id" varchar(150),
   "ip" varchar(15) NOT NULL,
   "agent" varchar(150) NOT NULL,
-  "type" device_types NOT NULL,
+  "dtype" device_types NOT NULL,
   "refresh_token" varchar(200) NOT NULL,
   "refresh_exp" timestamp NOT NULL,
   "created_at" timestamp NOT NULL,
