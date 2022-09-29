@@ -1,6 +1,7 @@
 package pass
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"unicode"
@@ -24,12 +25,12 @@ func (n Pass) String() string {
 	return string(n)
 }
 
-func NewPass(pass string) (*Pass, error) {
+func NewPass(pass, salt string) (*Pass, error) {
 	if err := vaildatePassword(pass); err != nil {
 		return nil, err
 	}
 
-	n := Pass(pass)
+	n := Pass(generateHashPassword(pass, salt))
 
 	return &n, nil
 }
@@ -80,4 +81,10 @@ func wrapError(err, appendError error) error {
 		return fmt.Errorf("%s:%s", appendError.Error(), err.Error())
 	}
 	return appendError
+}
+
+func generateHashPassword(password string, salt string) string {
+	hash := sha256.New()
+	hash.Write([]byte(password))
+	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
 }

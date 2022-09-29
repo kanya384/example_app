@@ -70,10 +70,7 @@ func (d *Docker) DeleteContainer(ctx context.Context, containerName string) (err
 	}
 	for _, container := range list {
 		if container.Names[0] == "/"+containerName {
-			err = d.cli.ContainerStop(ctx, container.ID, nil)
-			if err != nil {
-				return err
-			}
+			d.cli.ContainerStop(ctx, container.ID, nil)
 			err = d.cli.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{})
 			if err != nil {
 				return err

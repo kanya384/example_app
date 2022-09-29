@@ -7,14 +7,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	salt = "WcrMaOZhpYrpk79vFk"
+)
+
 func TestString(t *testing.T) {
 	req := require.New(t)
-	testPass, _ := NewPass("Password1!")
+
+	testPass, _ := NewPass("Password1!", salt)
 	tests := map[string]struct {
 		input *Pass
 		want  string
 	}{
-		"success": {input: testPass, want: "Password1!"},
+		"success": {input: testPass, want: generateHashPassword("Password1!", salt)},
 	}
 
 	for pass, testCase := range tests {
@@ -28,7 +33,7 @@ func TestString(t *testing.T) {
 
 func TestNewPass(t *testing.T) {
 	req := require.New(t)
-	testPass, _ := NewPass("Password12!")
+	testPass, _ := NewPass("Password12!", salt)
 	tests := map[string]struct {
 		input string
 		want  *Pass
@@ -45,7 +50,7 @@ func TestNewPass(t *testing.T) {
 
 	for testPass, testCase := range tests {
 		t.Run(testPass, func(t *testing.T) {
-			res, err := NewPass(testCase.input)
+			res, err := NewPass(testCase.input, salt)
 			req.Equal(testCase.want, res)
 			req.Equal(testCase.err, err)
 		})

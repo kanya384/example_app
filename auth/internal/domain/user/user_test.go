@@ -13,6 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	salt = "WcrMaOZhpYrpk79vFk"
+)
+
 func TestNewWithID(t *testing.T) {
 	req := require.New(t)
 	userID := uuid.New()
@@ -42,7 +46,7 @@ func TestNew(t *testing.T) {
 	name, _ := name.NewName("Василий")
 	surname, _ := surname.NewSurname("Пирогов")
 	phone, _ := phone.NewPhone("+7 900 862-15-54")
-	pass, _ := pass.NewPass("Password12!")
+	pass, _ := pass.NewPass("Password12!", salt)
 	email, _ := email.NewEmail("test01@mail.ru")
 	role := Administrator
 

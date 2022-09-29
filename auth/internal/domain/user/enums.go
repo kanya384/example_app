@@ -1,9 +1,10 @@
 package user
 
-type UserRole int8
+type UserRole string
 
 const (
-	Administrator UserRole = iota
-	DeliveryMan
-	Root
+	Administrator UserRole = "administrator"
+	DeliveryMan   UserRole = "deliveryman"
+	Root          UserRole = "root"
+	UserR         UserRole = "user"
 )
