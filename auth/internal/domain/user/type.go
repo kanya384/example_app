@@ -32,6 +32,7 @@ func NewWithID(
 	name name.Name,
 	surname surname.Surname,
 	phone phone.Phone,
+	pass pass.Pass,
 	email email.Email,
 	role UserRole,
 ) (*User, error) {
@@ -43,7 +44,7 @@ func NewWithID(
 		name:    name,
 		surname: surname,
 		phone:   phone,
-		pass:    pass.Pass(""),
+		pass:    pass,
 		email:   email,
 		role:    role,
 	}, nil

@@ -4,6 +4,7 @@ import (
 	"auth/internal/domain/user"
 	"auth/internal/domain/user/email"
 	"auth/internal/domain/user/name"
+	"auth/internal/domain/user/pass"
 	"auth/internal/domain/user/phone"
 	"auth/internal/domain/user/surname"
 	"auth/internal/repository/user/postgres/dao"
@@ -22,6 +23,9 @@ func (r Repository) toDomainUser(dao *dao.User) (result *user.User, err error) {
 	if err != nil {
 		return
 	}
+
+	pass := pass.Pass(dao.Pass)
+
 	email, err := email.NewEmail(dao.Email)
 	if err != nil {
 		return
@@ -34,6 +38,7 @@ func (r Repository) toDomainUser(dao *dao.User) (result *user.User, err error) {
 		*name,
 		*surname,
 		*phone,
+		pass,
 		*email,
 		user.UserRole(dao.Role),
 	)

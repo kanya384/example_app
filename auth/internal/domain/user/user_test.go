@@ -24,11 +24,12 @@ func TestNewWithID(t *testing.T) {
 	name, _ := name.NewName("Василий")
 	surname, _ := surname.NewSurname("Пирогов")
 	phone, _ := phone.NewPhone("+7 900 862-15-54")
+	pass, _ := pass.NewPass("Password12!", salt)
 	email, _ := email.NewEmail("test01@mail.ru")
 	role := Administrator
 
 	t.Run("create company with id success", func(t *testing.T) {
-		user, err := NewWithID(userID, timeNow, timeNow, *name, *surname, *phone, *email, role)
+		user, err := NewWithID(userID, timeNow, timeNow, *name, *surname, *phone, *pass, *email, role)
 		req.Equal(err, nil)
 		req.Equal(user.ID(), userID)
 		req.Equal(user.Name(), *name)

@@ -113,10 +113,12 @@ func TestUpdateUser(t *testing.T) {
 		return
 	}
 
-	newUser, _ := user.New(name.Name("updname"), surname.Surname("updsurname"), phone.Phone("79111111111"), pass.Pass("Qwerty123!"), email.Email("upemail@mail.ru"), user.Root)
+	pass, _ := pass.NewPass("Qwerty123!", salt)
+
+	newUser, _ := user.New(name.Name("updname"), surname.Surname("updsurname"), phone.Phone("79111111111"), *pass, email.Email("upemail@mail.ru"), user.Root)
 
 	updateFunc := func(oldUser *user.User) (*user.User, error) {
-		return user.NewWithID(oldUser.ID(), oldUser.CreatedAt(), time.Now().UTC(), newUser.Name(), newUser.Surname(), newUser.Phone(), newUser.Email(), newUser.Role())
+		return user.NewWithID(oldUser.ID(), oldUser.CreatedAt(), time.Now().UTC(), newUser.Name(), newUser.Surname(), newUser.Phone(), newUser.Pass(), newUser.Email(), newUser.Role())
 	}
 
 	t.Run("update company success", func(t *testing.T) {
