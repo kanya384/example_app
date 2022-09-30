@@ -22,6 +22,7 @@ type Device struct {
 	dtype        DeviceType
 	refreshToken refreshToken.RefreshToken
 	refreshExp   time.Time
+	lastSeen     time.Time
 }
 
 func NewWithID(
@@ -36,6 +37,7 @@ func NewWithID(
 	dtype DeviceType,
 	refreshToken refreshToken.RefreshToken,
 	refreshExp time.Time,
+	lastSeen time.Time,
 ) (*Device, error) {
 	return &Device{
 		id:           id,
@@ -48,6 +50,7 @@ func NewWithID(
 		dtype:        dtype,
 		refreshToken: refreshToken,
 		refreshExp:   refreshExp,
+		lastSeen:     lastSeen,
 	}, nil
 }
 
@@ -59,6 +62,7 @@ func New(
 	dtype DeviceType,
 	refreshToken refreshToken.RefreshToken,
 	refreshExp time.Time,
+	lastSeen time.Time,
 ) (*Device, error) {
 	timeNow := time.Now()
 	return &Device{
@@ -72,6 +76,7 @@ func New(
 		dtype:        dtype,
 		refreshToken: refreshToken,
 		refreshExp:   refreshExp,
+		lastSeen:     lastSeen,
 	}, nil
 }
 
@@ -113,4 +118,8 @@ func (d Device) RefreshToken() refreshToken.RefreshToken {
 
 func (d Device) RefreshExpiration() time.Time {
 	return d.refreshExp
+}
+
+func (d Device) LastSeen() time.Time {
+	return d.lastSeen
 }

@@ -21,7 +21,7 @@ type User interface {
 
 type Device interface {
 	CreateDevice(ctx context.Context, device *device.Device) (err error)
-	UpdateUser(ctx context.Context, device *device.Device) (err error)
-	DeleteUser(ctx context.Context, ID uuid.UUID) (err error)
-	ReadUserByID(ctx context.Context, ID uuid.UUID) (device *device.Device, err error)
+	UpdateDevice(ctx context.Context, ID uuid.UUID, updateFn func(device *device.Device) (*device.Device, error)) (device *device.Device, err error)
+	DeleteDevice(ctx context.Context, ID uuid.UUID) (err error)
+	ReadDeviceByID(ctx context.Context, ID uuid.UUID) (device *device.Device, err error)
 }

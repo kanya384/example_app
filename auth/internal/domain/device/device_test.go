@@ -23,7 +23,7 @@ func TestNewWithID(t *testing.T) {
 	agent, _ := agent.NewAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063")
 	dtype := IOS
 	t.Run("create company with id success", func(t *testing.T) {
-		device, err := NewWithID(id, timeNow, timeNow, userID, *deviceID, *ip, *agent, dtype, *refreshToken, timeNow)
+		device, err := NewWithID(id, timeNow, timeNow, userID, *deviceID, *ip, *agent, dtype, *refreshToken, timeNow, timeNow)
 		req.Equal(err, nil)
 		req.Equal(device.ID(), id)
 		req.Equal(device.CreatedAt(), timeNow)
@@ -35,6 +35,7 @@ func TestNewWithID(t *testing.T) {
 		req.Equal(device.Type(), dtype)
 		req.Equal(device.RefreshToken(), *refreshToken)
 		req.Equal(device.RefreshExpiration(), timeNow)
+		req.Equal(device.LastSeen(), timeNow)
 	})
 }
 
@@ -48,7 +49,7 @@ func TestNew(t *testing.T) {
 	agent, _ := agent.NewAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063")
 	dtype := IOS
 	t.Run("create company with id success", func(t *testing.T) {
-		device, err := New(userID, *deviceID, *ip, *agent, dtype, *refreshToken, timeNow)
+		device, err := New(userID, *deviceID, *ip, *agent, dtype, *refreshToken, timeNow, timeNow)
 		req.Equal(err, nil)
 		req.NotEmpty(device.ID())
 		req.NotEmpty(device.CreatedAt())
@@ -60,5 +61,6 @@ func TestNew(t *testing.T) {
 		req.Equal(device.Type(), dtype)
 		req.Equal(device.RefreshToken(), *refreshToken)
 		req.Equal(device.RefreshExpiration(), timeNow)
+		req.Equal(device.LastSeen(), timeNow)
 	})
 }
