@@ -9,12 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type Storage interface {
-	Company
-	Project
-	Employee
-}
-
 type Company interface {
 	CreateCompany(ctx context.Context, company *company.Company) (err error)
 	UpdateCompany(ctx context.Context, company *company.Company) (err error)

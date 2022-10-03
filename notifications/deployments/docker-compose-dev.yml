@@ -5,11 +5,11 @@ networks:
 services:
   postgres:
     image: postgres
-    container_name: 'companiesPG'
+    container_name: 'notificationsPG'
     environment:
-      POSTGRES_USER: ${COMPANIES_PG_USER}
-      POSTGRES_PASSWORD: ${COMPANIES_PG_PASS}
-      POSTGRES_DB: ${COMPANIES_PG_DBNAME}
+      POSTGRES_USER: ${NOTIFICATIONS_PG_USER}
+      POSTGRES_PASSWORD: ${NOTIFICATIONS_PG_PASS}
+      POSTGRES_DB: ${NOTIFICATIONS_PG_DBNAME}
     networks:
       - app-net
     ports:

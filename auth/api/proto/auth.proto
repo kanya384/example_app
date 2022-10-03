@@ -1,0 +1,73 @@
+syntax = "proto3";
+package companies;
+
+option go_package="./;company";
+import "google/protobuf/timestamp.proto";
+
+
+service Company {
+ rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
+ rpc SignIn (UpdateCompanyRequest) returns (UpdateCompanyResponse) {}
+ rpc VerifyEmail (VerifyEmailRequest) returns (VerifyEmailResponse) {}
+ rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse) {}
+ rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {}
+}
+
+message SignUpRequest {
+    string name = 1;
+    string surname = 2;
+    string phone = 3;
+    string pass = 4;
+    string email = 5;
+    string role = 6; 
+}
+
+message SignUpResponse {
+    string message = 1;
+}
+
+message SignInRequest {
+    string phone = 1;
+    string pass = 2;
+    DeviceRequest device = 3;
+}
+
+message DeviceRequest {
+    string userID = 1;
+    string deviceID = 2;
+    string ip = 3;
+    string agent = 4;
+    uint32 dtype = 5;
+}
+
+message VerifyEmailRequest {
+    string verificationCode = 1;
+}
+
+message VerifyEmailResponse {
+
+}
+
+message UpdateCompanyRequest {
+
+}
+
+message UpdateCompanyResponse {
+    
+}
+
+message ResetPasswordRequest {
+
+}
+
+message ResetPasswordResponse {
+
+}
+
+message RefreshTokenRequest {
+
+}
+
+message RefreshTokenResponse {
+
+}

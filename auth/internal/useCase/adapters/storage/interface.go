@@ -2,14 +2,15 @@ package storage
 
 import (
 	"auth/internal/domain/device"
+	"auth/internal/domain/user"
 	"context"
-	"os/user"
 
 	"github.com/google/uuid"
 )
 
 type Storage interface {
 	User
+	Device
 }
 
 type User interface {

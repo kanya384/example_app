@@ -28,7 +28,6 @@ func main() {
 	logger := lg.New(cfg.Log.Level)
 
 	dsn := helpers.PostgresConnectionString(cfg.PG.User, cfg.PG.Pass, cfg.PG.Host, cfg.PG.Port, cfg.PG.DbName)
-	fmt.Println(dsn)
 
 	err = helpers.MigrationsUP(dsn, "file://migrations")
 	if err != nil {
