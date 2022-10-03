@@ -133,7 +133,7 @@ func (r *Repository) ReadMailFiltredList(ctx context.Context, filter map[string]
 
 	for rows.Next() {
 		mail := dao.Mail{}
-		rows.Scan(&mail.ID, &mail.Recipient, &mail.Message, &mail.Subject, &mail.Status, &mail.CreatedAt, &mail.ModifiedAt)
+		rows.Scan(&mail.ID, &mail.Recipient, &mail.Subject, &mail.Message, &mail.Status, &mail.CreatedAt, &mail.ModifiedAt)
 
 		dMail, err := r.toDomainMail(&mail)
 		if err != nil {

@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+/*for test purposes -remove*/
 func main() {
 
 	cfg, err := config.InitConfig("auth")
@@ -20,7 +21,7 @@ func main() {
 
 	kafkaClent := client.NewKafkaClient(cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.GroupID)
 	mail := &notification.Mail{
-		Recipient: "test01@mail.ru",
+		Recipient: "kanya384@mail.ru",
 		Subject:   "test subject",
 		Message:   "test message",
 	}

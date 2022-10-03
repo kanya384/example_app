@@ -7,6 +7,7 @@ import (
 	"notifications/internal/delivery/pubsub"
 	repositoryStorage "notifications/internal/repository/mail/postgres"
 	"notifications/internal/useCase"
+	"notifications/pkg/emailClient"
 	"notifications/pkg/helpers"
 	"notifications/pkg/kafka/server"
 	"notifications/pkg/psql"
@@ -47,15 +48,25 @@ func main() {
 
 	contextWithCancel, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	useCase := useCase.New(stMail, useCase.Options{})
-	useCase.ProcessEmails(context.Background())
 
-	delivery := pubsub.New(useCase, kServer, logger, pubsub.Options{})
+	emailClient := emailClient.NewEmailClient(cfg.Email.Host, cfg.Email.Port, cfg.Email.Login, cfg.Email.Pass)
+	uc := useCase.New(stMail, emailClient, useCase.Options{})
+
+	delivery := pubsub.New(uc, kServer, logger, pubsub.Options{})
 	messagesChan, err := delivery.SubscribeToMessages(contextWithCancel)
 	if err != nil {
 		logger.Fatal(fmt.Errorf("kafka subscribe error: %w", err))
 	}
 	go delivery.ProcessMessage(contextWithCancel, messagesChan)
+
+	go func(context context.Context, useCase *useCase.UseCase) {
+		for {
+			err = useCase.ProcessEmails(context)
+			if err != nil {
+				logger.Error(err)
+			}
+		}
+	}(contextWithCancel, uc)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)

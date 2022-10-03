@@ -26,6 +26,13 @@ type Config struct {
 		DbName  string
 		Timeout int
 	}
+
+	Email struct {
+		Host  string
+		Port  string
+		Login string
+		Pass  string
+	}
 }
 
 func InitConfig(prefix string) (*Config, error) {
