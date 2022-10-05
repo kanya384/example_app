@@ -1,8 +1,8 @@
-package postgres
+package device
 
 import (
 	"auth/internal/domain/device"
-	"auth/internal/repository/device/postgres/dao"
+	"auth/internal/repository/postgres/device/dao"
 	"context"
 	"errors"
 	"fmt"
@@ -99,6 +99,23 @@ func (r *Repository) DeleteDevice(ctx context.Context, ID uuid.UUID) (err error)
 
 func (r *Repository) ReadDeviceByID(ctx context.Context, ID uuid.UUID) (device *device.Device, err error) {
 	rawQuery := r.Builder.Select(dao.ColumnsDevice...).From(tableName).Where("id = ?", ID)
+	query, args, _ := rawQuery.ToSql()
+
+	row, err := r.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	daoDevice, err := pgx.CollectOneRow(row, pgx.RowToStructByPos[dao.Device])
+	if err != nil {
+		return nil, err
+	}
+
+	return r.toDomainDevice(&daoDevice)
+}
+
+func (r *Repository) ReadDevicesByDeviceID(ctx context.Context, ID uuid.UUID) (device *device.Device, err error) {
+	rawQuery := r.Builder.Select(dao.ColumnsDevice...).From(tableName).Where("device_id = ?", ID)
 	query, args, _ := rawQuery.ToSql()
 
 	row, err := r.Pool.Query(ctx, query, args...)

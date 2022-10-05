@@ -3,5 +3,5 @@ package pubsub
 import "context"
 
 type Notification interface {
-	SendEmail(ctx context.Context, email string, subject string, message string)
+	SendMessage(ctx context.Context, key string, msg []byte) (err error)
 }

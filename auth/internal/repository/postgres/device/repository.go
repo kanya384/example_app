@@ -1,4 +1,4 @@
-package postgres
+package device
 
 import "auth/pkg/psql"
 

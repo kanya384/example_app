@@ -10,6 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	REFRESH_TTL = time.Hour * 24 * 30
+)
+
 type Device struct {
 	id         uuid.UUID
 	createdAt  time.Time
@@ -61,8 +65,6 @@ func New(
 	agent agent.Agent,
 	dtype DeviceType,
 	refreshToken refreshToken.RefreshToken,
-	refreshExp time.Time,
-	lastSeen time.Time,
 ) (*Device, error) {
 	timeNow := time.Now()
 	return &Device{
@@ -75,8 +77,8 @@ func New(
 		agent:        agent,
 		dtype:        dtype,
 		refreshToken: refreshToken,
-		refreshExp:   refreshExp,
-		lastSeen:     lastSeen,
+		refreshExp:   timeNow.Add(REFRESH_TTL), //expires in 30 days
+		lastSeen:     timeNow,
 	}, nil
 }
 
@@ -94,6 +96,10 @@ func (d Device) ModifiedAt() time.Time {
 
 func (d Device) UserID() uuid.UUID {
 	return d.userID
+}
+
+func (d *Device) SetUserID(id uuid.UUID) {
+	d.userID = id
 }
 
 func (d Device) DeviceID() deviceID.DeviceID {

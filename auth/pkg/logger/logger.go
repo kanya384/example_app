@@ -5,7 +5,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rs/zerolog"
+	formatters "github.com/fabienm/go-logrus-formatters"
+	"github.com/sirupsen/logrus"
+
+	graylog "github.com/gemnasium/logrus-graylog-hook/v3"
 )
 
 // Interface -.
@@ -19,35 +22,40 @@ type Interface interface {
 
 // Logger -.
 type Logger struct {
-	logger *zerolog.Logger
+	logger *logrus.Logger
 }
 
 var _ Interface = (*Logger)(nil)
 
 // New -.
-func New(level string) *Logger {
-	var l zerolog.Level
+func New(level string, serviceName string, graylogHost string) *Logger {
+	var l logrus.Level
 
 	switch strings.ToLower(level) {
 	case "error":
-		l = zerolog.ErrorLevel
+		l = logrus.ErrorLevel
 	case "warn":
-		l = zerolog.WarnLevel
+		l = logrus.WarnLevel
 	case "info":
-		l = zerolog.InfoLevel
+		l = logrus.InfoLevel
 	case "debug":
-		l = zerolog.DebugLevel
+		l = logrus.DebugLevel
 	default:
-		l = zerolog.InfoLevel
+		l = logrus.InfoLevel
 	}
 
-	zerolog.SetGlobalLevel(l)
+	fmtr := formatters.NewGelf(serviceName)
+	hooks := []logrus.Hook{graylog.NewGraylogHook(graylogHost, map[string]interface{}{})}
 
-	skipFrameCount := 3
-	logger := zerolog.New(os.Stdout).With().Timestamp().CallerWithSkipFrameCount(zerolog.CallerSkipFrameCount + skipFrameCount).Logger()
+	logger := logrus.New()
+	logger.Formatter = fmtr
+	for _, hook := range hooks {
+		logger.AddHook(hook)
+	}
+	logger.Level = l
 
 	return &Logger{
-		logger: &logger,
+		logger: logger,
 	}
 }
 
@@ -68,7 +76,7 @@ func (l *Logger) Warn(message string, args ...interface{}) {
 
 // Error -.
 func (l *Logger) Error(message interface{}, args ...interface{}) {
-	if l.logger.GetLevel() == zerolog.DebugLevel {
+	if l.logger.GetLevel() == logrus.DebugLevel {
 		l.Debug(message, args...)
 	}
 
@@ -84,9 +92,9 @@ func (l *Logger) Fatal(message interface{}, args ...interface{}) {
 
 func (l *Logger) log(message string, args ...interface{}) {
 	if len(args) == 0 {
-		l.logger.Info().Msg(message)
+		l.logger.Info(message)
 	} else {
-		l.logger.Info().Msgf(message, args...)
+		l.logger.Infof(message, args...)
 	}
 }
 

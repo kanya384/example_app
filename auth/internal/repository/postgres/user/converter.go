@@ -1,4 +1,4 @@
-package postgres
+package user
 
 import (
 	"auth/internal/domain/user"
@@ -7,7 +7,7 @@ import (
 	"auth/internal/domain/user/pass"
 	"auth/internal/domain/user/phone"
 	"auth/internal/domain/user/surname"
-	"auth/internal/repository/user/postgres/dao"
+	"auth/internal/repository/postgres/user/dao"
 )
 
 func (r Repository) toDomainUser(dao *dao.User) (result *user.User, err error) {

@@ -1,0 +1,145 @@
+version: '3'
+services:
+     # MongoDB: https://hub.docker.com/_/mongo/
+    mongo:
+      image: mongo:4.2
+      networks:
+        - graylog
+    # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/7.10/docker.html
+    elasticsearch:
+      image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+      environment:
+        - http.host=0.0.0.0
+        - transport.host=localhost
+        - network.host=0.0.0.0
+        - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true -Xms512m -Xmx512m"
+      ulimits:
+        memlock:
+          soft: -1
+          hard: -1
+      deploy:
+        resources:
+          limits:
+            memory: 1g
+      networks:
+        - graylog
+    # Graylog: https://hub.docker.com/r/graylog/graylog/
+    graylog:
+      container_name: graylog
+      image: graylog/graylog:4.3
+      environment:
+        # CHANGE ME (must be at least 16 characters)!
+        - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
+        # Password: admin
+        - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+        - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/
+      entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
+      networks:
+        - graylog
+      restart: always
+      depends_on:
+        - mongo
+        - elasticsearch
+      ports:
+        # Graylog web interface and REST API
+        - 9000:9000
+        # Syslog TCP
+        - 1514:1514
+        # Syslog UDP
+        - 1514:1514/udp
+        # GELF TCP
+        - 12201:12201
+        # GELF UDP
+        - 12201:12201/udp
+    zookeeper:
+      image: wurstmeister/zookeeper
+      ports:
+        - "2181:2181"
+      networks:
+        - app-net
+    kafka:
+      image: wurstmeister/kafka
+      container_name: kafka
+      #ports:
+      #  - "9092:9092"
+      links:
+        - zookeeper
+      environment:
+        KAFKA_ADVERTISED_HOST_NAME: kafka
+        KAFKA_ADVERTISED_PORT: 9092
+        KAFKA_CREATE_TOPICS: "sendEmail:1:1"
+        KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      networks:
+        - app-net
+    prometheus:
+      image: prom/prometheus:latest
+      container_name: prometheus
+      ports:
+        - 9090:9090
+      command:
+        - --config.file=/prometheus.yml
+      volumes:
+        - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      networks:
+        - app-net
+    grafana:
+      image: grafana/grafana:latest
+      links: 
+        - prometheus:prometheus
+      environment:
+        - GF_SECURITY_ADMIN_USER=admin
+        - GF_SECURITY_ADMIN_PASSWORD=admin
+        - GF_USERS_ALLOW_SIGN_UP=false
+      ports:
+        - 3000:3000
+      networks:
+        - app-net
+    postgres:
+      image: postgres
+      container_name: postgres
+      environment:
+        POSTGRES_USER: ${PG_USER}
+        POSTGRES_PASSWORD: ${PG_PASS}
+        POSTGRES_DB: ${PG_DBNAME}
+      networks:
+        - app-net
+      ports:
+        - 5432:5432
+      volumes:
+        - ./data:/var/lib/postgresql/data
+    notifications:
+      build:
+        context: ./notifications
+      container_name: notifications
+      links:    
+        - postgres
+        - kafka
+      volumes:
+        - ./notifications/migrations:/migrations
+      networks:
+        - app-net
+        - graylog
+      environment:
+        - NOTIFICATIONS_KAFKA_BROKERS=${KAFKA_BROKERS}
+        - NOTIFICATIONS_KAFKA_TOPIC=${EMAIL_TOPIC}
+        - NOTIFICATIONS_KAFKA_GROUP=${EMAIL_GROUP}
+        - NOTIFICATIONS_LOG_LEVEL=${LOG_LEVEL}
+        - NOTIFICATIONS_PG_USER=${PG_USER}
+        - NOTIFICATIONS_PG_PASS=${PG_PASS}
+        - NOTIFICATIONS_PG_PORT=${PG_PORT}
+        - NOTIFICATIONS_PG_HOST=${PG_HOST}
+        - NOTIFICATIONS_PG_DBNAME=${PG_DBNAME}
+        - NOTIFICATIONS_PG_POOLMAX=${PG_POOLMAX}
+        - NOTIFICATIONS_PG_TIMEOUT=${PG_TIMEOUT}
+        - NOTIFICATIONS_EMAIL_HOST=${NOTIFICATIONS_EMAIL_HOST}
+        - NOTIFICATIONS_EMAIL_PORT=${NOTIFICATIONS_EMAIL_PORT}
+        - NOTIFICATIONS_EMAIL_LOGIN=${NOTIFICATIONS_EMAIL_LOGIN}
+        - NOTIFICATIONS_EMAIL_PASS=${NOTIFICATIONS_EMAIL_PASS}
+        - NOTIFICATIONS_GRAYLOG_HOST=${GRAYLOG_HOST}
+networks:
+    graylog:
+      driver: bridge
+    app-net:
+      driver: bridge

@@ -1,4 +1,4 @@
-package postgres
+package device
 
 import (
 	"auth/internal/domain/device"
@@ -6,7 +6,7 @@ import (
 	"auth/internal/domain/device/deviceID"
 	"auth/internal/domain/device/ip"
 	"auth/internal/domain/device/refreshToken"
-	"auth/internal/repository/device/postgres/dao"
+	"auth/internal/repository/postgres/device/dao"
 )
 
 func (r Repository) toDomainDevice(dao *dao.Device) (result *device.Device, err error) {

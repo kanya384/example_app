@@ -8,12 +8,11 @@ help: ## Display this help screen
 
 genproto: ## generates go package from proto files
 	@protoc  api/proto/*.proto --go-grpc_out=./internal/delivery/grpc/interface --go_out=./internal/delivery/grpc/interface
-	@protoc  api/proto/*.proto --go-grpc_out=./internal/delivery/grpc/interface --go_out=./internal/delivery/grpc/interface
 	@protoc  ../notifications/api/proto/*.proto --go-grpc_out=./pkg/types/notifications --go_out=./pkg/types/notifications
 .PHONY: genproto
 
 run: ## runs app localy
-	@go run cmd/kafka/main.go
+	@go run cmd/app/main.go
 .PHONY: run
 
 compose-dev-up: ## testing infrastracture

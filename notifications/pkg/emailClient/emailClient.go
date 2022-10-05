@@ -23,7 +23,6 @@ func NewEmailClient(host, port, sender, password string) *Client {
 }
 
 func (c *Client) SendEmail(ctx context.Context, sendTo, subject, text string) (err error) {
-	fmt.Println(generateMessage(c.sender, sendTo, subject, text))
 	err = smtp.SendMail(c.address, c.auth, c.sender, []string{sendTo}, []byte(generateMessage(c.sender, sendTo, subject, text)))
 	return
 }

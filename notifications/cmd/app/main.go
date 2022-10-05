@@ -19,13 +19,17 @@ import (
 	lg "notifications/pkg/logger"
 )
 
+const (
+	serviceName = "notifications"
+)
+
 func main() {
 	cfg, err := config.InitConfig("notifications")
 	if err != nil {
 		panic(fmt.Sprintf("error initializing config %s", err))
 	}
 
-	logger := lg.New(cfg.Log.Level)
+	logger := lg.New(cfg.Log.Level, serviceName, cfg.Graylog.Host)
 
 	kServer := server.NewKafkaServer(cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.Group)
 	defer kServer.Close()
@@ -43,43 +47,38 @@ func main() {
 
 	stMail, err := repositoryStorage.New(pg, repositoryStorage.Options{})
 	if err != nil {
-		logger.Fatal(fmt.Errorf("storage initialization error: %w", err))
+		logger.Fatal("storage initialization error: %w", err)
 	}
 
 	contextWithCancel, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	emailClient := emailClient.NewEmailClient(cfg.Email.Host, cfg.Email.Port, cfg.Email.Login, cfg.Email.Pass)
-	uc := useCase.New(stMail, emailClient, useCase.Options{})
+	uc := useCase.New(stMail, emailClient, logger, useCase.Options{})
 
 	delivery := pubsub.New(uc, kServer, logger, pubsub.Options{})
 	messagesChan, err := delivery.SubscribeToMessages(contextWithCancel)
+	defer close(messagesChan)
 	if err != nil {
 		logger.Fatal(fmt.Errorf("kafka subscribe error: %w", err))
 	}
 	go delivery.ProcessMessage(contextWithCancel, messagesChan)
 
-	go func(context context.Context, useCase *useCase.UseCase) {
-		for {
-			err = useCase.ProcessEmails(context)
-			if err != nil {
-				logger.Error(err)
-			}
-		}
-	}(contextWithCancel, uc)
-
+	done := make(chan struct{})
+	defer close(done)
+	go uc.ProcessEmails(contextWithCancel, done, time.Duration(time.Second*5))
+	logger.Info(fmt.Sprintf("Service %s started", serviceName))
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
 	<-c
-
+	logger.Info("Gracefull shut down ....")
 	if err := shutdown(kServer); err != nil {
 		panic(fmt.Errorf("failed shutdown with error: %w", err))
 	}
 }
 
 func shutdown(kServer *server.KafkaServer) (err error) {
-	fmt.Println("Gracefull shut down ....")
 	err = kServer.Close()
 	if err != nil {
 		return

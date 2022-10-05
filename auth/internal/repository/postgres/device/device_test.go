@@ -1,4 +1,4 @@
-package postgres
+package device
 
 import (
 	"auth/internal/domain/device"
@@ -12,7 +12,7 @@ import (
 	"auth/internal/domain/user/pass"
 	"auth/internal/domain/user/phone"
 	"auth/internal/domain/user/surname"
-	user "auth/internal/repository/user/postgres"
+	user "auth/internal/repository/postgres/user"
 
 	"auth/pkg/docker"
 	"auth/pkg/helpers"
@@ -208,9 +208,7 @@ func createTestDevice() *device.Device {
 	agent, _ := agent.NewAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063")
 	dtype := device.Web
 	refreshToken, _ := refreshToken.New()
-	refreshExp := time.Now()
-	lastSeen := time.Now()
-	testDevice, _ := device.New(userID, *deviceID, *ip, *agent, dtype, *refreshToken, refreshExp, lastSeen)
+	testDevice, _ := device.New(userID, *deviceID, *ip, *agent, dtype, *refreshToken)
 	return testDevice
 }
 

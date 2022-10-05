@@ -27,6 +27,10 @@ type Config struct {
 		Timeout int
 	}
 
+	Graylog struct {
+		Host string
+	}
+
 	Email struct {
 		Host  string
 		Port  string

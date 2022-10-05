@@ -5,9 +5,9 @@ option go_package="./;company";
 import "google/protobuf/timestamp.proto";
 
 
-service Company {
+service Auth {
  rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
- rpc SignIn (UpdateCompanyRequest) returns (UpdateCompanyResponse) {}
+ rpc SignIn (SignInRequest) returns (SignInResponse) {}
  rpc VerifyEmail (VerifyEmailRequest) returns (VerifyEmailResponse) {}
  rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse) {}
  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {}
@@ -30,6 +30,10 @@ message SignInRequest {
     string phone = 1;
     string pass = 2;
     DeviceRequest device = 3;
+}
+
+message SignInResponse {
+    string message = 1;
 }
 
 message DeviceRequest {

@@ -7,10 +7,34 @@ import (
 )
 
 type Config struct {
+	Port int
+
 	Kafka struct {
 		Brokers []string
 		Topic   string
 		GroupID string
+	}
+
+	Log struct {
+		Level string
+	}
+
+	Graylog struct {
+		Host string
+	}
+
+	PG struct {
+		User    string
+		Pass    string
+		Port    string
+		Host    string
+		PoolMax int
+		DbName  string
+		Timeout int
+	}
+
+	Token struct {
+		Salt string
 	}
 }
 
