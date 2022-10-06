@@ -13,3 +13,14 @@ up: ## testing infrastracture
 test: ## runs unit and integration tests
 	@GOCACHE=off go test ./... -cover
 .PHONY: test
+
+genproto: ## generates go package from proto files
+	@protoc -I ./api ./api/auth.proto --go-grpc_out=./auth/internal/delivery/grpc/interface --go_out=./auth/internal/delivery/grpc/interface --grpc-gateway_out=./auth/internal/delivery/grpc/interface
+	
+
+gengateway:
+	@protoc -I ./api --openapiv2_out ./gen/openapiv2 \
+   	--go_out ./gateway/internal/gateway --go_opt paths=source_relative \
+	--go-grpc_out ./gateway/internal/gateway --go-grpc_opt paths=source_relative \
+	--grpc-gateway_out ./gateway/internal/gateway --grpc-gateway_opt paths=source_relative --openapiv2_out . \
+    ./api/auth.proto

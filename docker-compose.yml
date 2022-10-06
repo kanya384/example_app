@@ -62,8 +62,6 @@ services:
       container_name: kafka
       #ports:
       #  - "9092:9092"
-      links:
-        - zookeeper
       environment:
         KAFKA_ADVERTISED_HOST_NAME: kafka
         KAFKA_ADVERTISED_PORT: 9092
@@ -71,6 +69,8 @@ services:
         KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
+      ports:
+        - 9092:9092
       networks:
         - app-net
     prometheus:
@@ -96,9 +96,9 @@ services:
         - 3000:3000
       networks:
         - app-net
-    postgres:
+    postgres_notifications:
       image: postgres
-      container_name: postgres
+      container_name: postgres_notifications
       environment:
         POSTGRES_USER: ${PG_USER}
         POSTGRES_PASSWORD: ${PG_PASS}
@@ -108,38 +108,51 @@ services:
       ports:
         - 5432:5432
       volumes:
-        - ./data:/var/lib/postgresql/data
-    notifications:
-      build:
-        context: ./notifications
-      container_name: notifications
-      links:    
-        - postgres
-        - kafka
-      volumes:
-        - ./notifications/migrations:/migrations
+        - ./data/notif:/var/lib/postgresql/data
+    postgresAuth:
+      image: postgres
+      container_name: postgres_auth
+      environment:
+        POSTGRES_USER: ${PG_USER}
+        POSTGRES_PASSWORD: ${PG_PASS}
+        POSTGRES_DB: ${PG_DBNAME}
       networks:
         - app-net
-        - graylog
-      environment:
-        - NOTIFICATIONS_KAFKA_BROKERS=${KAFKA_BROKERS}
-        - NOTIFICATIONS_KAFKA_TOPIC=${EMAIL_TOPIC}
-        - NOTIFICATIONS_KAFKA_GROUP=${EMAIL_GROUP}
-        - NOTIFICATIONS_LOG_LEVEL=${LOG_LEVEL}
-        - NOTIFICATIONS_PG_USER=${PG_USER}
-        - NOTIFICATIONS_PG_PASS=${PG_PASS}
-        - NOTIFICATIONS_PG_PORT=${PG_PORT}
-        - NOTIFICATIONS_PG_HOST=${PG_HOST}
-        - NOTIFICATIONS_PG_DBNAME=${PG_DBNAME}
-        - NOTIFICATIONS_PG_POOLMAX=${PG_POOLMAX}
-        - NOTIFICATIONS_PG_TIMEOUT=${PG_TIMEOUT}
-        - NOTIFICATIONS_EMAIL_HOST=${NOTIFICATIONS_EMAIL_HOST}
-        - NOTIFICATIONS_EMAIL_PORT=${NOTIFICATIONS_EMAIL_PORT}
-        - NOTIFICATIONS_EMAIL_LOGIN=${NOTIFICATIONS_EMAIL_LOGIN}
-        - NOTIFICATIONS_EMAIL_PASS=${NOTIFICATIONS_EMAIL_PASS}
-        - NOTIFICATIONS_GRAYLOG_HOST=${GRAYLOG_HOST}
+      ports:
+        - 5500:5432
+      volumes:
+        - ./data/auth:/var/lib/postgresql/data
 networks:
     graylog:
       driver: bridge
     app-net:
       driver: bridge
+    #notifications:
+    #  build:
+    #    context: ./notifications
+    #  container_name: notifications
+    #  links:    
+    #    - postgres
+    #    - kafka
+    #  volumes:
+    #    - ./notifications/migrations:/migrations
+    #  networks:
+    #    - app-net
+    #    - graylog
+    #  environment:
+    #    - NOTIFICATIONS_KAFKA_BROKERS=${KAFKA_BROKERS}
+    #    - NOTIFICATIONS_KAFKA_TOPIC=${EMAIL_TOPIC}
+    #    - NOTIFICATIONS_KAFKA_GROUP=${EMAIL_GROUP}
+    #    - NOTIFICATIONS_LOG_LEVEL=${LOG_LEVEL}
+    #    - NOTIFICATIONS_PG_USER=${PG_USER}
+    #    - NOTIFICATIONS_PG_PASS=${PG_PASS}
+    #    - NOTIFICATIONS_PG_PORT=${PG_PORT}
+    #    - NOTIFICATIONS_PG_HOST=${PG_HOST}
+    #    - NOTIFICATIONS_PG_DBNAME=${PG_DBNAME}
+    #    - NOTIFICATIONS_PG_POOLMAX=${PG_POOLMAX}
+    #    - NOTIFICATIONS_PG_TIMEOUT=${PG_TIMEOUT}
+    #    - NOTIFICATIONS_EMAIL_HOST=${NOTIFICATIONS_EMAIL_HOST}
+    #    - NOTIFICATIONS_EMAIL_PORT=${NOTIFICATIONS_EMAIL_PORT}
+    #    - NOTIFICATIONS_EMAIL_LOGIN=${NOTIFICATIONS_EMAIL_LOGIN}
+    #    - NOTIFICATIONS_EMAIL_PASS=${NOTIFICATIONS_EMAIL_PASS}
+    #    - NOTIFICATIONS_GRAYLOG_HOST=${GRAYLOG_HOST}

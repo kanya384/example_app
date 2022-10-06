@@ -1,12 +1,16 @@
 syntax = "proto3";
-package companies;
+package auth;
 
-option go_package="./;company";
-import "google/protobuf/timestamp.proto";
-
+option go_package="./;auth";
+import "google/api/annotations.proto";
 
 service Auth {
- rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
+ rpc SignUp (SignUpRequest) returns (SignUpResponse) {
+    option (google.api.http) = {
+        post: "/auth/signUp"
+        body: "*"
+    };
+ }
  rpc SignIn (SignInRequest) returns (SignInResponse) {}
  rpc VerifyEmail (VerifyEmailRequest) returns (VerifyEmailResponse) {}
  rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse) {}

@@ -51,7 +51,7 @@ func (d *Delivery) SignUp(ctx context.Context, request *auth.SignUpRequest) (res
 	if err != nil {
 		return
 	}
-	return
+	return &auth.SignUpResponse{Message: "registration success, please confirm email"}, nil
 }
 
 func (d *Delivery) SignIn(ctx context.Context, request *auth.SignInRequest) (response *auth.SignInResponse, err error) {
@@ -93,7 +93,7 @@ func (d *Delivery) SignIn(ctx context.Context, request *auth.SignInRequest) (res
 	}
 
 	d.ucAuth.SignIn(ctx, *phone, *pass, device)
-	return
+	return &auth.SignInResponse{Message: "successfully registred"}, nil
 }
 
 func (d *Delivery) VerifyEmail(ctx context.Context, request *auth.VerifyEmailRequest) (response *auth.VerifyEmailResponse, err error) {

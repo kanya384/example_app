@@ -41,9 +41,9 @@ func MigrationsUP(dsn, path string) (err error) {
 
 func GenerateEmail(recipient, subject, msg string) (message []byte, err error) {
 	mail := &notification.Mail{
-		Recipient: "kanya384@mail.ru",
-		Subject:   "test subject",
-		Message:   "test message",
+		Recipient: recipient,
+		Subject:   subject,
+		Message:   msg,
 	}
 	message, err = proto.Marshal(mail)
 	if err != nil {
