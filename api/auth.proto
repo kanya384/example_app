@@ -1,8 +1,37 @@
 syntax = "proto3";
-package auth;
+package grpc;
 
-option go_package="./;auth";
+option go_package="./;grpc";
 import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Auth service gateway";
+      version: "1.0";
+      contact: {
+        name: "laurkan";
+        email: "kanya384@mail.ru";
+      };
+    };
+    security_definitions: {
+        security: {
+            key: "Bearer"
+            value: {
+                type: TYPE_API_KEY
+                in: IN_HEADER
+                name: "Authorization"
+                description: "Authentication token, prefixed by Bearer: Bearer <token>"
+            }
+        }
+    };
+    security: {
+        security_requirement: {
+          key: "Bearer"
+        }
+    };
+      
+};
 
 service Auth {
  rpc SignUp (SignUpRequest) returns (SignUpResponse) {
@@ -10,14 +39,31 @@ service Auth {
         post: "/auth/signUp"
         body: "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        security: { }
+    };
  }
  rpc SignIn (SignInRequest) returns (SignInResponse) {}
  rpc VerifyEmail (VerifyEmailRequest) returns (VerifyEmailResponse) {}
  rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse) {}
- rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {}
+ rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+        post: "/auth/refreshToken"
+        body: "*"
+    };
+ }
 }
 
 message SignUpRequest {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+        json_schema: {
+            title: "A bit of everything"
+            description: "Intentionaly complicated message type to cover many features of Protobuf."
+            required: ["name", "surname", "phone", "pass", "email", "role"]
+        }
+        example: "{\"name\": \"Иван\", \"surname\":\"Иванов\", \"phone\":\"+7 (900) 870-13-33\", \"pass\":\"Password2!\", \"email\":\"test01@mail.ru\", \"role\":\"administrator\"}"
+    };
+
     string name = 1;
     string surname = 2;
     string phone = 3;
@@ -34,6 +80,7 @@ message SignInRequest {
     string phone = 1;
     string pass = 2;
     DeviceRequest device = 3;
+    
 }
 
 message SignInResponse {
@@ -56,11 +103,11 @@ message VerifyEmailResponse {
 
 }
 
-message UpdateCompanyRequest {
+message UpdateUserRequest {
 
 }
 
-message UpdateCompanyResponse {
+message UpdateUserResponse {
     
 }
 
@@ -73,9 +120,10 @@ message ResetPasswordResponse {
 }
 
 message RefreshTokenRequest {
-
+    string refreshToken = 1;
 }
 
 message RefreshTokenResponse {
-
+    string accessToken = 1;
+    string refreshToken = 2;
 }

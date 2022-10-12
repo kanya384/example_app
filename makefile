@@ -1,5 +1,5 @@
-include .env
-export
+#include .env
+#export
 
 .PHONY: help
 
@@ -19,8 +19,8 @@ genproto: ## generates go package from proto files
 	
 
 gengateway:
-	@protoc -I ./api --openapiv2_out ./gen/openapiv2 \
-   	--go_out ./gateway/internal/gateway --go_opt paths=source_relative \
-	--go-grpc_out ./gateway/internal/gateway --go-grpc_opt paths=source_relative \
-	--grpc-gateway_out ./gateway/internal/gateway --grpc-gateway_opt paths=source_relative --openapiv2_out . \
-    ./api/auth.proto
+	@protoc -I ./api --openapiv2_out=./gen/openapiv2 --openapiv2_opt allow_merge=true \
+   	--go_out ./services/gateway/internal/gateway --go_opt paths=source_relative \
+	--go-grpc_out ./services/gateway/internal/gateway --go-grpc_opt paths=source_relative \
+	--grpc-gateway_out ./services/gateway/internal/gateway --grpc-gateway_opt paths=source_relative \
+    ./api/*.proto

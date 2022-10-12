@@ -1,0 +1,343 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Auth service gateway",
+    "version": "1.0",
+    "contact": {
+      "name": "laurkan",
+      "email": "kanya384@mail.ru"
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Company"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/auth/refreshToken": {
+      "post": {
+        "operationId": "Auth_RefreshToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/grpcRefreshTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/grpcRefreshTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/signUp": {
+      "post": {
+        "operationId": "Auth_SignUp",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/grpcSignUpResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "Intentionaly complicated message type to cover many features of Protobuf.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/grpcSignUpRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "security": []
+      }
+    },
+    "/company": {
+      "put": {
+        "operationId": "Company_CreateCompany",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/grpcCreateCompanyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/grpcCreateCompanyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Company"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "grpcCompanyResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "inn": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "address": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "modifiedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "grpcCreateCompanyRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "inn": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "address": {
+          "type": "string"
+        }
+      }
+    },
+    "grpcCreateCompanyResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/grpcCompanyResponse"
+        }
+      }
+    },
+    "grpcDeleteCompanyResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "grpcDeviceRequest": {
+      "type": "object",
+      "properties": {
+        "userID": {
+          "type": "string"
+        },
+        "deviceID": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "agent": {
+          "type": "string"
+        },
+        "dtype": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "grpcReadCompanyByIdResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/grpcCompanyResponse"
+        }
+      }
+    },
+    "grpcRefreshTokenRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "grpcRefreshTokenResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        }
+      }
+    },
+    "grpcResetPasswordResponse": {
+      "type": "object"
+    },
+    "grpcSignInResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "grpcSignUpRequest": {
+      "type": "object",
+      "example": {
+        "name": "Иван",
+        "surname": "Иванов",
+        "phone": "+7 (900) 870-13-33",
+        "pass": "Password2!",
+        "email": "test01@mail.ru",
+        "role": "administrator"
+      },
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "surname": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "pass": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "description": "Intentionaly complicated message type to cover many features of Protobuf.",
+      "title": "A bit of everything",
+      "required": [
+        "name",
+        "surname",
+        "phone",
+        "pass",
+        "email",
+        "role"
+      ]
+    },
+    "grpcSignUpResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "grpcUpdateCompanyResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/grpcCompanyResponse"
+        }
+      }
+    },
+    "grpcVerifyEmailResponse": {
+      "type": "object"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "description": "Authentication token, prefixed by Bearer: Bearer \u003ctoken\u003e",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ]
+}
