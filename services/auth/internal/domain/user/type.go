@@ -16,12 +16,13 @@ type User struct {
 	createdAt  time.Time
 	modifiedAt time.Time
 
-	name    name.Name
-	surname surname.Surname
-	phone   phone.Phone
-	pass    pass.Pass
-	email   email.Email
-	role    UserRole
+	name     name.Name
+	surname  surname.Surname
+	phone    phone.Phone
+	pass     pass.Pass
+	email    email.Email
+	verified bool
+	role     UserRole
 }
 
 func NewWithID(
@@ -34,6 +35,7 @@ func NewWithID(
 	phone phone.Phone,
 	pass pass.Pass,
 	email email.Email,
+	verified bool,
 	role UserRole,
 ) (*User, error) {
 	return &User{
@@ -64,12 +66,13 @@ func New(
 		createdAt:  timeNow,
 		modifiedAt: timeNow,
 
-		name:    name,
-		surname: surname,
-		phone:   phone,
-		pass:    pass,
-		email:   email,
-		role:    role,
+		name:     name,
+		surname:  surname,
+		phone:    phone,
+		pass:     pass,
+		email:    email,
+		verified: false,
+		role:     role,
 	}, nil
 }
 
@@ -103,6 +106,10 @@ func (c User) Pass() pass.Pass {
 
 func (c User) Email() email.Email {
 	return c.email
+}
+
+func (c User) Verified() bool {
+	return c.verified
 }
 
 func (c User) Role() UserRole {

@@ -12,6 +12,7 @@ CREATE TABLE "user" (
   "phone" varchar(100) NOT NULL,
   "pass" varchar(300) NOT NULL,
   "email" varchar(300) NOT NULL,
+  "verified" boolean NOT NULL DEFAULT false,
   "role" user_role NOT NULL,
   "created_at" timestamp NOT NULL,
   "modified_at" timestamp NOT NULL

@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	CONFIRMATION_MESSAGE_SUBJECT  = "Подтверждение электронной почты"
-	CONFIRMATION_MESSAGE_TEMPLATE = "Пожалуйста перейдите по ссылке, чтобы подтвердить вашу почту:\r\n %s"
+	confirmationSubject  = "Подтверждение электронной почты"
+	confirmationTemplate = "Пожалуйста перейдите по ссылке, чтобы подтвердить вашу почту:\r\n %s"
+	emailVerification    = ""
 )
 
 type useCase struct {
@@ -57,7 +58,7 @@ func (uc *useCase) SignUp(ctx context.Context, user *user.User) (err error) {
 		return
 	}
 
-	msg, err := helpers.GenerateEmail(user.Email().String(), CONFIRMATION_MESSAGE_SUBJECT, fmt.Sprintf(CONFIRMATION_MESSAGE_TEMPLATE, "http://url"))
+	msg, err := helpers.GenerateEmail(user.Email().String(), confirmationSubject, fmt.Sprintf(confirmationTemplate, "http://url"))
 	if err != nil {
 		return
 	}
@@ -96,7 +97,12 @@ func (uc *useCase) SignIn(ctx context.Context, phone phone.Phone, pass pass.Pass
 	return
 }
 
-func (uc *useCase) VerifyEmail(ctx context.Context, verificationCode string) (err error) {
+func (uc *useCase) VerifyEmail(ctx context.Context, verificationCode uuid.UUID) (err error) {
+	//TODO - search uuid key in redis, if exists get user id and update user in repo
+	return
+}
+
+func (uc *useCase) ResendVerificationCode(ctx context.Context, userID uuid.UUID) (err error) {
 	return
 }
 

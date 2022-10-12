@@ -40,6 +40,7 @@ func (r Repository) toDomainUser(dao *dao.User) (result *user.User, err error) {
 		*phone,
 		pass,
 		*email,
+		dao.Verified,
 		user.UserRole(dao.Role),
 	)
 	if err != nil {
