@@ -17,7 +17,7 @@ type UseCase interface {
 	SignUp(ctx context.Context, user *user.User) (err error)
 	SignIn(ctx context.Context, phone phone.Phone, pass pass.Pass, device *device.Device) (err error)
 	ResendVerificationCode(ctx context.Context, userID uuid.UUID) (err error)
-	VerifyEmail(ctx context.Context, verificationCode string) (err error)
+	VerifyEmail(ctx context.Context, verificationCode uuid.UUID) (err error)
 	ResetPassword(ctx context.Context, email email.Email) (err error)
 	RefreshToken(ctx context.Context, deviceID uuid.UUID, ip ip.Ip, agent agent.Agent) (err error)
 }

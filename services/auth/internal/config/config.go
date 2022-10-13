@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/vrischmann/envconfig"
 )
@@ -35,6 +36,11 @@ type Config struct {
 
 	Token struct {
 		Salt string
+	}
+
+	Cache struct {
+		TimeToLive      time.Duration
+		CleanupInterval time.Duration
 	}
 }
 

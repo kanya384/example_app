@@ -9,6 +9,7 @@ import (
 	"auth/pkg/helpers"
 	"auth/pkg/kafka/client"
 	lg "auth/pkg/logger"
+	"auth/pkg/memcache"
 	"auth/pkg/psql"
 	"fmt"
 	"net"
@@ -50,7 +51,9 @@ func main() {
 		logger.Fatal("storage initialization error: %w", err)
 	}
 
-	uc := useCase.New(storage.Users, storage.Devices, kafkaClent, logger, useCase.Options{})
+	memcache := memcache.New(cfg.Cache.TimeToLive, cfg.Cache.CleanupInterval)
+
+	uc := useCase.New(storage.Users, storage.Devices, memcache, kafkaClent, logger, useCase.Options{})
 
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 	if err != nil {
@@ -74,15 +77,16 @@ func main() {
 
 	<-c
 
-	if err := shutdown(server, logger, pg); err != nil {
+	if err := shutdown(server, pg, memcache, logger); err != nil {
 		logger.Fatal(fmt.Errorf("failed shutdown with error: %w", err))
 	}
 }
 
-func shutdown(server *grpc.Server, logger *lg.Logger, psql *psql.Postgres) error {
+func shutdown(server *grpc.Server, psql *psql.Postgres, memcache *memcache.Cache, logger *lg.Logger) error {
 	logger.Info("Gracefully stopping...")
 	server.GracefulStop()
 	psql.Pool.Close()
+	memcache.Stop()
 	logger.Info("Gracefully shutdown done!")
 	return nil
 }

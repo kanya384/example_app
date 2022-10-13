@@ -112,6 +112,10 @@ func (c User) Verified() bool {
 	return c.verified
 }
 
+func (c *User) SetVerified(value bool) {
+	c.verified = value
+}
+
 func (c User) Role() UserRole {
 	return c.role
 }
