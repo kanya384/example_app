@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"auth/internal/domain/user"
+	"auth/internal/domain/user/email"
 	"auth/internal/domain/user/pass"
 	"auth/internal/domain/user/phone"
 	"auth/internal/repository/postgres/user/dao"
@@ -115,6 +116,22 @@ func (r *Repository) ReadUserByID(ctx context.Context, ID uuid.UUID) (*user.User
 
 func (r *Repository) ReadUserByCredetinals(ctx context.Context, phone phone.Phone, pass pass.Pass) (*user.User, error) {
 	rawQuery := r.Builder.Select(dao.ColumnsUser...).From(tableName).Where("phone = ? and pass = ?", phone.String(), pass.String())
+	query, args, _ := rawQuery.ToSql()
+
+	row, err := r.Pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	daoUser, err := pgx.CollectOneRow(row, pgx.RowToStructByPos[dao.User])
+	if err != nil {
+		return nil, err
+	}
+
+	return r.toDomainUser(&daoUser)
+}
+
+func (r *Repository) ReadUserByEmail(ctx context.Context, email email.Email) (*user.User, error) {
+	rawQuery := r.Builder.Select(dao.ColumnsUser...).From(tableName).Where("email = ?", email.String())
 	query, args, _ := rawQuery.ToSql()
 
 	row, err := r.Pool.Query(ctx, query, args...)

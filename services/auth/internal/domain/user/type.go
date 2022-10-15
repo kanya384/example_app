@@ -116,6 +116,10 @@ func (c *User) SetVerified(value bool) {
 	c.verified = value
 }
 
+func (c *User) SetPassword(password pass.Pass) {
+	c.pass = password
+}
+
 func (c User) Role() UserRole {
 	return c.role
 }

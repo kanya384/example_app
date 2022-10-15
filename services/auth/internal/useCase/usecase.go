@@ -24,10 +24,14 @@ import (
 )
 
 const (
-	confirmationSubject  = "Подтверждение электронной почты"
-	confirmationTemplate = "Пожалуйста перейдите по ссылке, чтобы подтвердить вашу почту:\r\n %s"
-	emailVerification    = ""
-	emailVerificationTTL = time.Duration(time.Minute * 60 * 24)
+	confirmationSubject     = "Подтверждение электронной почты"
+	confirmationTemplate    = "Пожалуйста перейдите по ссылке, чтобы подтвердить вашу почту:\r\n %s"
+	emailVerification       = ""
+	emailVerificationTTL    = time.Duration(time.Minute * 60 * 24)
+	resetPasswordSessionTTL = time.Duration(time.Minute * 20)
+	resetSubject            = "Смена пароля"
+	resetTemplate           = "Пожалуйста перейдите по ссылке, для сброса пароля:\r\n %s"
+	ErrNoResetRequest       = "reset request not founded"
 )
 
 var (
@@ -200,11 +204,51 @@ func (uc *useCase) sendVerificationCodeToEmail(ctx context.Context, userID strin
 }
 
 func (uc *useCase) ResetPasswordRequest(ctx context.Context, email email.Email) (err error) {
-	//TODO - generate and send url to reset password, store reset uuid in inmem with expirationTime
+	user, err := uc.usersStorage.ReadUserByEmail(ctx, email)
+	if err != nil {
+		return
+	}
+	resetRequestID := uuid.NewString()
+	msg, err := helpers.GenerateEmail(email.String(), resetSubject, fmt.Sprintf(resetTemplate, fmt.Sprintf(`http://url/%s`, resetRequestID)))
+	if err != nil {
+		return
+	}
+
+	err = uc.notification.SendMessage(ctx, uuid.New().String(), msg)
+	if err != nil {
+		uc.logger.Error("error sending reset password message to kafka: ", err.Error())
+	}
+	uc.cache.Set(resetRequestID, user.ID(), resetPasswordSessionTTL)
 	return
 }
 
-func (uc *useCase) ResetPasswordProcess(ctx context.Context, uuid uuid.UUID, newPassword string) (err error) {
-	//TODO - process password reset
+func (uc *useCase) ResetPasswordProcess(ctx context.Context, resetRequestID uuid.UUID, newPass pass.Pass) (err error) {
+
+	id, err := uc.cache.Get(resetRequestID.String())
+	if err != nil {
+		err = errors.New(ErrNoResetRequest)
+		return
+	}
+
+	userID, ok := id.(uuid.UUID)
+	if !ok {
+		err = errors.New(ErrNoResetRequest)
+		return
+	}
+
+	userU, err := uc.usersStorage.ReadUserByID(ctx, userID)
+	if err != nil {
+		return
+	}
+
+	userU.SetPassword(newPass)
+
+	_, err = uc.usersStorage.UpdateUser(ctx, userU.ID(), func(oldUser *user.User) (*user.User, error) {
+		return user.NewWithID(oldUser.ID(), oldUser.CreatedAt(), time.Now(), oldUser.Name(), oldUser.Surname(), oldUser.Phone(), userU.Pass(), oldUser.Email(), oldUser.Verified(), oldUser.Role())
+	})
+
+	if err != nil {
+		return
+	}
 	return
 }
