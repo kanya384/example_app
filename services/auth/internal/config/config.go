@@ -35,7 +35,9 @@ type Config struct {
 	}
 
 	Token struct {
-		Salt string
+		Salt              string
+		TimeToLive        time.Duration
+		RefreshTimeToLive time.Duration
 	}
 
 	Cache struct {

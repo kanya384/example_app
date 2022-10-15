@@ -6,6 +6,7 @@ import (
 	authGrpc "auth/internal/delivery/grpc/interface"
 	repository "auth/internal/repository/postgres"
 	"auth/internal/useCase"
+	"auth/pkg/auth"
 	"auth/pkg/helpers"
 	"auth/pkg/kafka/client"
 	lg "auth/pkg/logger"
@@ -53,7 +54,12 @@ func main() {
 
 	memcache := memcache.New(cfg.Cache.TimeToLive, cfg.Cache.CleanupInterval)
 
-	uc := useCase.New(storage.Users, storage.Devices, memcache, kafkaClent, logger, useCase.Options{})
+	tokenManager, err := auth.NewManager(cfg.Token.Salt)
+	if err != nil {
+		logger.Fatal("token manager initialization error: %w", err)
+	}
+
+	uc := useCase.New(storage.Users, storage.Devices, memcache, kafkaClent, tokenManager, logger, useCase.Options{TokenTTL: cfg.Token.TimeToLive})
 
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 	if err != nil {

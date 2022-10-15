@@ -4,6 +4,7 @@ import (
 	"auth/internal/domain/device"
 	"auth/internal/domain/device/agent"
 	"auth/internal/domain/device/ip"
+	"auth/internal/domain/device/refreshToken"
 	"auth/internal/domain/user"
 	"auth/internal/domain/user/email"
 	"auth/internal/domain/user/pass"
@@ -11,9 +12,11 @@ import (
 	"auth/internal/useCase/adapters/cache"
 	"auth/internal/useCase/adapters/pubsub"
 	"auth/internal/useCase/adapters/storage"
+	"auth/pkg/auth"
 	"auth/pkg/helpers"
 	"auth/pkg/logger"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -21,10 +24,15 @@ import (
 )
 
 const (
-	confirmationSubject    = "Подтверждение электронной почты"
-	confirmationTemplate   = "Пожалуйста перейдите по ссылке, чтобы подтвердить вашу почту:\r\n %s"
-	emailVerification      = ""
-	verificationExpiration = time.Duration(time.Minute * 60 * 24)
+	confirmationSubject  = "Подтверждение электронной почты"
+	confirmationTemplate = "Пожалуйста перейдите по ссылке, чтобы подтвердить вашу почту:\r\n %s"
+	emailVerification    = ""
+	emailVerificationTTL = time.Duration(time.Minute * 60 * 24)
+)
+
+var (
+	ErrInvalidRefresh = errors.New("refresh is invalid")
+	ErrUnknownDevice  = errors.New("unknown device, please relogin")
 )
 
 type useCase struct {
@@ -33,17 +41,21 @@ type useCase struct {
 	cache         cache.Cache
 	notification  pubsub.Notification
 	logger        *logger.Logger
+	tokenManager  auth.TokenManager
 	options       Options
 }
 
-type Options struct{}
+type Options struct {
+	TokenTTL time.Duration
+}
 
-func New(usersStorage storage.User, deviceStorage storage.Device, cache cache.Cache, notification pubsub.Notification, logger *logger.Logger, options Options) *useCase {
+func New(usersStorage storage.User, deviceStorage storage.Device, cache cache.Cache, notification pubsub.Notification, tokenManager auth.TokenManager, logger *logger.Logger, options Options) *useCase {
 	var uc = &useCase{
 		usersStorage:  usersStorage,
 		deviceStorage: deviceStorage,
 		cache:         cache,
 		notification:  notification,
+		tokenManager:  tokenManager,
 		logger:        logger,
 	}
 	uc.SetOptions(options)
@@ -53,7 +65,6 @@ func New(usersStorage storage.User, deviceStorage storage.Device, cache cache.Ca
 func (uc *useCase) SetOptions(options Options) {
 	if uc.options != options {
 		uc.options = options
-		//log.Info("set new options", zap.Any("options", uc.options))
 	}
 }
 
@@ -68,7 +79,7 @@ func (uc *useCase) SignUp(ctx context.Context, user *user.User) (err error) {
 	return
 }
 
-func (uc *useCase) SignIn(ctx context.Context, phone phone.Phone, pass pass.Pass, inputDevice *device.Device) (err error) {
+func (uc *useCase) SignIn(ctx context.Context, phone phone.Phone, pass pass.Pass, inputDevice *device.Device) (res SignInResult, err error) {
 	user, err := uc.usersStorage.ReadUserByCredetinals(ctx, phone, pass)
 	if err != nil {
 		return
@@ -76,7 +87,6 @@ func (uc *useCase) SignIn(ctx context.Context, phone phone.Phone, pass pass.Pass
 
 	inputDevice.SetUserID(user.ID())
 
-	//TODO - optimize this
 	isDeviceExists := true
 	if _, err := uc.deviceStorage.ReadDevicesByDeviceID(ctx, inputDevice.UserID()); err != nil {
 		isDeviceExists = false
@@ -92,7 +102,12 @@ func (uc *useCase) SignIn(ctx context.Context, phone phone.Phone, pass pass.Pass
 		return
 	}
 
-	//TODO - create refresh and access token
+	token, err := uc.tokenManager.NewJWT(auth.JwtClaims{UserID: user.ID().String(), UserName: user.Name().String() + " " + user.Surname().String()}, uc.options.TokenTTL)
+	if err != nil {
+		return
+	}
+	res.Token = token
+	res.Refresh = inputDevice.RefreshToken().String()
 
 	return
 }
@@ -124,17 +139,54 @@ func (uc *useCase) ResendVerificationCode(ctx context.Context, userID uuid.UUID)
 	return uc.sendVerificationCodeToEmail(ctx, user.ID().String(), user.Email().String())
 }
 
-func (uc *useCase) ResetPassword(ctx context.Context, email email.Email) (err error) {
-	return
-}
+func (uc *useCase) RefreshToken(ctx context.Context, userID uuid.UUID, refreshToken refreshToken.RefreshToken, ip ip.Ip, agent agent.Agent) (result RefreshResult, err error) {
+	deviceUpd, err := uc.deviceStorage.ReadDeviceByUserIDAndRefresh(ctx, userID, refreshToken)
+	if err != nil {
+		err = ErrInvalidRefresh
+		return
+	}
 
-func (uc *useCase) RefreshToken(ctx context.Context, deviceID uuid.UUID, ip ip.Ip, agent agent.Agent) (err error) {
+	if deviceUpd.RefreshExpiration().UnixNano() < time.Now().UnixNano() {
+		err = ErrInvalidRefresh
+		return
+	}
+
+	if deviceUpd.Ip().String() != ip.String() || deviceUpd.Agent().String() != agent.String() {
+		err = ErrUnknownDevice
+		return
+	}
+
+	user, err := uc.usersStorage.ReadUserByID(ctx, userID)
+	if err != nil {
+		return
+	}
+
+	token, err := uc.tokenManager.NewJWT(auth.JwtClaims{UserID: user.ID().String(), UserName: user.Name().String() + " " + user.Surname().String()}, uc.options.TokenTTL)
+	if err != nil {
+		return
+	}
+
+	err = deviceUpd.UpdateRefreshToken()
+	if err != nil {
+		return
+	}
+
+	device, err := uc.deviceStorage.UpdateDevice(ctx, deviceUpd.ID(), func(oldDevice *device.Device) (*device.Device, error) {
+		return device.NewWithID(oldDevice.ID(), oldDevice.CreatedAt(), time.Now(), oldDevice.UserID(), oldDevice.DeviceID(), oldDevice.Ip(), oldDevice.Agent(), oldDevice.Type(), deviceUpd.RefreshToken(), deviceUpd.RefreshExpiration(), time.Now())
+	})
+	if err != nil {
+		return
+	}
+
+	result.Token = token
+	result.Refresh = device.RefreshToken().String()
+
 	return
 }
 
 func (uc *useCase) sendVerificationCodeToEmail(ctx context.Context, userID string, email string) (err error) {
 	verificationCode := uuid.NewString()
-	uc.cache.Set(verificationCode, userID, verificationExpiration)
+	uc.cache.Set(verificationCode, userID, emailVerificationTTL)
 	msg, err := helpers.GenerateEmail(email, confirmationSubject, fmt.Sprintf(confirmationTemplate, fmt.Sprintf(`http://url/%s`, verificationCode)))
 	if err != nil {
 		return
@@ -144,5 +196,15 @@ func (uc *useCase) sendVerificationCodeToEmail(ctx context.Context, userID strin
 	if err != nil {
 		uc.logger.Error("error sending confirmation message to kafka: ", err.Error())
 	}
+	return
+}
+
+func (uc *useCase) ResetPasswordRequest(ctx context.Context, email email.Email) (err error) {
+	//TODO - generate and send url to reset password, store reset uuid in inmem with expirationTime
+	return
+}
+
+func (uc *useCase) ResetPasswordProcess(ctx context.Context, uuid uuid.UUID, newPassword string) (err error) {
+	//TODO - process password reset
 	return
 }

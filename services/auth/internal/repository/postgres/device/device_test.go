@@ -201,6 +201,27 @@ func TestReadDeviceByID(t *testing.T) {
 
 }
 
+func TestReadDeviceByUserIDAndRefresh(t *testing.T) {
+	req := require.New(t)
+	device := createTestDevice()
+	err := repository.CreateDevice(context.Background(), device)
+	if err != nil {
+		log.Fatalf("error creating test device: %s", err.Error())
+	}
+
+	t.Run("success", func(t *testing.T) {
+		deviceR, err := repository.ReadDeviceByUserIDAndRefresh(context.Background(), uuid.UUID(device.UserID()), device.RefreshToken())
+		req.Empty(err)
+		req.Equal(device.ID(), deviceR.ID())
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		_, err := repository.ReadDeviceByID(context.Background(), uuid.New())
+		req.ErrorContains(err, ErrEmptyResult.Error())
+	})
+
+}
+
 func createTestDevice() *device.Device {
 	userID := testUser.ID()
 	deviceID, _ := deviceID.NewDeviceID("000000000000000-00")

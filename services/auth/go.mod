@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/Masterminds/squirrel v1.5.3
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/docker v20.10.18+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/fabienm/go-logrus-formatters v1.0.0
@@ -15,6 +16,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.0
 	github.com/vrischmann/envconfig v1.3.0
+	google.golang.org/genproto v0.0.0-20220314164441-57ef72a4c106
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.27.1
 )
@@ -46,6 +48,5 @@ require (
 	golang.org/x/net v0.0.0-20220706163947-c90051bbdb60 // indirect
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220314164441-57ef72a4c106 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -122,6 +122,16 @@ func (d Device) RefreshToken() refreshToken.RefreshToken {
 	return d.refreshToken
 }
 
+func (d *Device) UpdateRefreshToken() error {
+	refresh, err := refreshToken.New()
+	if err != nil {
+		return err
+	}
+	d.refreshToken = *refresh
+	d.refreshExp = time.Now().Add(REFRESH_TTL)
+	return nil
+}
+
 func (d Device) RefreshExpiration() time.Time {
 	return d.refreshExp
 }
