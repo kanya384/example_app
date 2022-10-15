@@ -77,13 +77,15 @@ func (uc *useCase) SignIn(ctx context.Context, phone phone.Phone, pass pass.Pass
 	inputDevice.SetUserID(user.ID())
 
 	//TODO - optimize this
-	_, err = uc.deviceStorage.ReadDevicesByDeviceID(ctx, inputDevice.UserID())
-	switch err {
-	case nil:
+	isDeviceExists := true
+	if _, err := uc.deviceStorage.ReadDevicesByDeviceID(ctx, inputDevice.UserID()); err != nil {
+		isDeviceExists = false
+	}
+	if isDeviceExists {
 		_, err = uc.deviceStorage.UpdateDevice(ctx, inputDevice.ID(), func(oldDevice *device.Device) (*device.Device, error) {
 			return device.NewWithID(oldDevice.ID(), oldDevice.CreatedAt(), inputDevice.ModifiedAt(), oldDevice.UserID(), inputDevice.DeviceID(), inputDevice.Ip(), inputDevice.Agent(), inputDevice.Type(), inputDevice.RefreshToken(), inputDevice.RefreshExpiration(), inputDevice.LastSeen())
 		})
-	default:
+	} else {
 		err = uc.deviceStorage.CreateDevice(ctx, inputDevice)
 	}
 	if err != nil {
