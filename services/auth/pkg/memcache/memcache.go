@@ -26,6 +26,7 @@ type Item struct {
 }
 
 func New(defaultExpiration, cleanupInterval time.Duration) *Cache {
+
 	items := make(map[string]Item)
 	cache := Cache{
 		items:             items,
@@ -37,7 +38,6 @@ func New(defaultExpiration, cleanupInterval time.Duration) *Cache {
 	if cleanupInterval > 0 {
 		cache.startGC()
 	}
-
 	return &cache
 }
 
@@ -108,6 +108,8 @@ func (c *Cache) startGC() {
 }
 
 func (c *Cache) cleanExpiredKeys() {
+	c.Lock()
+	defer c.Unlock()
 	for key, item := range c.items {
 		if item.Expiration > 0 && item.Expiration < time.Now().UnixNano() {
 			delete(c.items, key)

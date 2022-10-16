@@ -16,13 +16,13 @@ type Interface interface {
 	Debug(message interface{}, args ...interface{})
 	Info(message string, args ...interface{})
 	Warn(message string, args ...interface{})
-	Error(message interface{}, args ...interface{})
+	Error(message string, args ...interface{})
 	Fatal(message interface{}, args ...interface{})
 }
 
 // Logger -.
 type Logger struct {
-	logger *logrus.Logger
+	Logger *logrus.Logger
 }
 
 var _ Interface = (*Logger)(nil)
@@ -55,7 +55,7 @@ func New(level string, serviceName string, graylogHost string) *Logger {
 	logger.Level = l
 
 	return &Logger{
-		logger: logger,
+		Logger: logger,
 	}
 }
 
@@ -75,12 +75,8 @@ func (l *Logger) Warn(message string, args ...interface{}) {
 }
 
 // Error -.
-func (l *Logger) Error(message interface{}, args ...interface{}) {
-	if l.logger.GetLevel() == logrus.DebugLevel {
-		l.Debug(message, args...)
-	}
-
-	l.msg("error", message, args...)
+func (l *Logger) Error(message string, args ...interface{}) {
+	l.Logger.Errorf(message, args)
 }
 
 // Fatal -.
@@ -92,9 +88,9 @@ func (l *Logger) Fatal(message interface{}, args ...interface{}) {
 
 func (l *Logger) log(message string, args ...interface{}) {
 	if len(args) == 0 {
-		l.logger.Info(message)
+		l.Logger.Info(message)
 	} else {
-		l.logger.Infof(message, args...)
+		l.Logger.Infof(message, args...)
 	}
 }
 

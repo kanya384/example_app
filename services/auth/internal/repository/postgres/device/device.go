@@ -2,6 +2,7 @@ package device
 
 import (
 	"auth/internal/domain/device"
+	"auth/internal/domain/device/deviceID"
 	"auth/internal/domain/device/refreshToken"
 	"auth/internal/repository/postgres/device/dao"
 	"context"
@@ -37,7 +38,7 @@ func (r *Repository) CreateDevice(ctx context.Context, device *device.Device) (e
 	return
 }
 
-func (r *Repository) UpdateDevice(ctx context.Context, ID uuid.UUID, updateFn func(device *device.Device) (*device.Device, error)) (device *device.Device, err error) {
+func (r *Repository) UpdateDevice(ctx context.Context, ID uuid.UUID, updateFn func(*device.Device) (*device.Device, error)) (device *device.Device, err error) {
 	tx, err := r.Pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return
@@ -132,8 +133,8 @@ func (r *Repository) ReadDeviceByUserIDAndRefresh(ctx context.Context, userID uu
 	return r.toDomainDevice(&daoDevice)
 }
 
-func (r *Repository) ReadDevicesByDeviceID(ctx context.Context, ID uuid.UUID) (device *device.Device, err error) {
-	rawQuery := r.Builder.Select(dao.ColumnsDevice...).From(tableName).Where("device_id = ?", ID)
+func (r *Repository) ReadDevicesByDeviceID(ctx context.Context, deviceID deviceID.DeviceID) (device *device.Device, err error) {
+	rawQuery := r.Builder.Select(dao.ColumnsDevice...).From(tableName).Where("device_id = ?", deviceID)
 	query, args, _ := rawQuery.ToSql()
 
 	row, err := r.Pool.Query(ctx, query, args...)

@@ -21,5 +21,5 @@ type UseCase interface {
 	VerifyEmail(ctx context.Context, verificationCode uuid.UUID) (err error)
 	RefreshToken(ctx context.Context, userID uuid.UUID, refreshToken refreshToken.RefreshToken, ip ip.Ip, agent agent.Agent) (result RefreshResult, err error)
 	ResetPasswordRequest(ctx context.Context, email email.Email) (err error)
-	ResetPasswordProcess(ctx context.Context, uuid uuid.UUID, newPassword string) (err error)
+	ResetPasswordProcess(ctx context.Context, resetRequestID uuid.UUID, newPass pass.Pass) (err error)
 }

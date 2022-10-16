@@ -1,5 +1,4 @@
-include .env
-export
+
 
 .PHONY: help
 
@@ -25,7 +24,11 @@ compose-down: ## docker compose down
 
 genmocks: ## generate mocks
 	mockgen -source=./internal/useCase/adapters/storage/interface.go -destination=./test/mocks/storage/storage.go -package=storage
+	mockgen -source=./internal/useCase/adapters/pubsub/interface.go -destination=./test/mocks/pubsub/pubsub.go -package=pubsub
+	mockgen -source=./internal/useCase/adapters/cache/cache.go -destination=./test/mocks/cache/cache.go -package=cache
 	mockgen -source=./internal/useCase/interface.go -destination=./test/mocks/useCase/usecase.go -package=useCase
+	mockgen -source=./pkg/auth/auth.go -destination=./test/mocks/auth/auth.go -package=auth
+	mockgen -source=./pkg/logger/logger.go -destination=./test/mocks/logger/logger.go -package=logger
 .PHONY: genmocks
 
 test: ## runs unit and integration tests

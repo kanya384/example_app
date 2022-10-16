@@ -37,6 +37,7 @@ const (
 var (
 	ErrInvalidRefresh = errors.New("refresh is invalid")
 	ErrUnknownDevice  = errors.New("unknown device, please relogin")
+	updateFunction    func(*device.Device) (*device.Device, error)
 )
 
 type useCase struct {
@@ -44,7 +45,7 @@ type useCase struct {
 	deviceStorage storage.Device
 	cache         cache.Cache
 	notification  pubsub.Notification
-	logger        *logger.Logger
+	logger        logger.Interface
 	tokenManager  auth.TokenManager
 	options       Options
 }
@@ -53,7 +54,7 @@ type Options struct {
 	TokenTTL time.Duration
 }
 
-func New(usersStorage storage.User, deviceStorage storage.Device, cache cache.Cache, notification pubsub.Notification, tokenManager auth.TokenManager, logger *logger.Logger, options Options) *useCase {
+func New(usersStorage storage.User, deviceStorage storage.Device, cache cache.Cache, notification pubsub.Notification, tokenManager auth.TokenManager, logger logger.Interface, options Options) *useCase {
 	var uc = &useCase{
 		usersStorage:  usersStorage,
 		deviceStorage: deviceStorage,
@@ -78,7 +79,7 @@ func (uc *useCase) SignUp(ctx context.Context, user *user.User) (err error) {
 		return
 	}
 
-	go uc.sendVerificationCodeToEmail(ctx, user.ID().String(), user.Email().String())
+	uc.sendVerificationCodeToEmail(ctx, user.ID().String(), user.Email().String())
 
 	return
 }
@@ -92,7 +93,7 @@ func (uc *useCase) SignIn(ctx context.Context, phone phone.Phone, pass pass.Pass
 	inputDevice.SetUserID(user.ID())
 
 	isDeviceExists := true
-	if _, err := uc.deviceStorage.ReadDevicesByDeviceID(ctx, inputDevice.UserID()); err != nil {
+	if _, err := uc.deviceStorage.ReadDevicesByDeviceID(ctx, inputDevice.DeviceID()); err != nil {
 		isDeviceExists = false
 	}
 	if isDeviceExists {
@@ -189,16 +190,17 @@ func (uc *useCase) RefreshToken(ctx context.Context, userID uuid.UUID, refreshTo
 }
 
 func (uc *useCase) sendVerificationCodeToEmail(ctx context.Context, userID string, email string) (err error) {
-	verificationCode := uuid.NewString()
-	uc.cache.Set(verificationCode, userID, emailVerificationTTL)
-	msg, err := helpers.GenerateEmail(email, confirmationSubject, fmt.Sprintf(confirmationTemplate, fmt.Sprintf(`http://url/%s`, verificationCode)))
+	verificationID := uuid.NewString()
+	uc.cache.Set(verificationID, userID, emailVerificationTTL)
+
+	msg, err := helpers.GenerateEmail(email, confirmationSubject, fmt.Sprintf(confirmationTemplate, fmt.Sprintf(`http://url/%s`, verificationID)))
 	if err != nil {
 		return
 	}
 
 	err = uc.notification.SendMessage(ctx, uuid.New().String(), msg)
 	if err != nil {
-		uc.logger.Error("error sending confirmation message to kafka: ", err.Error())
+		uc.logger.Error("error sending confirmation message to kafka: %s", err.Error())
 	}
 	return
 }
