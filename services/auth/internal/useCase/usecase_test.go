@@ -167,6 +167,81 @@ func TestResendVerificationCode(t *testing.T) {
 	})
 }
 
+func TestRefreshToken(t *testing.T) {
+	req := require.New(t)
+	useCaseSuite := setupUseCase(t)
+	ctx := context.Background()
+	testDevice := createTestDevice()
+	testUser := createTestUser()
+	testDevice.SetUserID(testUser.ID())
+	token := "test"
+
+	t.Run("success", func(t *testing.T) {
+		useCaseSuite.devicesMock.EXPECT().ReadDeviceByUserIDAndRefresh(ctx, testDevice.UserID(), testDevice.RefreshToken()).Return(testDevice, nil).Times(1)
+		useCaseSuite.usersMock.EXPECT().ReadUserByID(ctx, testDevice.UserID()).Return(testUser, nil).Times(1)
+		useCaseSuite.tokenManager.EXPECT().NewJWT(useCaseSuite.any, useCaseSuite.any).Return(token, nil).Times(1)
+		useCaseSuite.devicesMock.EXPECT().UpdateDevice(ctx, useCaseSuite.any, useCaseSuite.any).Return(testDevice, nil).Times(1)
+		result, err := useCaseSuite.useCase.RefreshToken(ctx, testUser.ID(), testDevice.RefreshToken(), testDevice.Ip(), testDevice.Agent())
+		req.Empty(err)
+		req.Equal(token, result.Token)
+		req.Equal(testDevice.RefreshToken().String(), result.Refresh)
+	})
+
+	t.Run("error not found", func(t *testing.T) {
+		useCaseSuite.devicesMock.EXPECT().ReadDeviceByUserIDAndRefresh(ctx, testDevice.UserID(), testDevice.RefreshToken()).Return(nil, ErrInvalidRefresh).Times(1)
+		result, err := useCaseSuite.useCase.RefreshToken(ctx, testUser.ID(), testDevice.RefreshToken(), testDevice.Ip(), testDevice.Agent())
+		req.Equal(ErrInvalidRefresh, err)
+		req.Empty(result)
+	})
+}
+
+func TestResetPasswordRequest(t *testing.T) {
+	req := require.New(t)
+	useCaseSuite := setupUseCase(t)
+	ctx := context.Background()
+	testUser := createTestUser()
+
+	t.Run("success", func(t *testing.T) {
+		useCaseSuite.usersMock.EXPECT().ReadUserByEmail(ctx, testUser.Email()).Return(testUser, nil).Times(1)
+		useCaseSuite.pubsubMock.EXPECT().SendMessage(ctx, useCaseSuite.any, useCaseSuite.any).Return(nil).Times(1)
+		useCaseSuite.cacheMock.EXPECT().Set(useCaseSuite.any, useCaseSuite.any, useCaseSuite.any).Times(1)
+		err := useCaseSuite.useCase.ResetPasswordRequest(ctx, testUser.Email())
+		req.Empty(err)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		useCaseSuite.usersMock.EXPECT().ReadUserByEmail(ctx, testUser.Email()).Return(nil, errors.New("not found")).Times(1)
+		err := useCaseSuite.useCase.ResetPasswordRequest(ctx, testUser.Email())
+		req.Equal(errors.New("not found"), err)
+	})
+}
+
+func TestResetPasswordProcess(t *testing.T) {
+
+	req := require.New(t)
+	useCaseSuite := setupUseCase(t)
+	ctx := context.Background()
+	testUser := createTestUser()
+	requestId := uuid.New()
+	newPass, _ := pass.NewPass("Qwerty4321!", "abc")
+
+	t.Run("success", func(t *testing.T) {
+		useCaseSuite.cacheMock.EXPECT().Get(useCaseSuite.any).Return(testUser.ID(), nil).Times(1)
+		useCaseSuite.usersMock.EXPECT().ReadUserByID(ctx, testUser.ID()).Return(testUser, nil).Times(1)
+		useCaseSuite.usersMock.EXPECT().UpdateUser(ctx, testUser.ID(), useCaseSuite.any).Return(testUser, nil).Times(1)
+		err := useCaseSuite.useCase.ResetPasswordProcess(ctx, requestId, *newPass)
+		req.Empty(err)
+		req.Equal(testUser.Pass(), *newPass)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		useCaseSuite.cacheMock.EXPECT().Get(useCaseSuite.any).Return("", errors.New(ErrNoResetRequest)).Times(1)
+		err := useCaseSuite.useCase.ResetPasswordProcess(ctx, requestId, *newPass)
+		req.Equal(err, errors.New(ErrNoResetRequest))
+	})
+
+}
+
 func createTestDevice() (deviceT *device.Device) {
 
 	userID := uuid.New()
