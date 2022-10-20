@@ -24,8 +24,8 @@ compose-down: ## docker compose down
 .PHONY: compose-down
 
 create-test-bucket: ## testing aws bucket
-	@AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY} AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} awslocal --endpoint-url=http://${STORAGE_HOST} --region=${AWS_REGION} s3 mb s3://${STORAGE_BUCKET}
-	@AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY} AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} awslocal --endpoint-url=http://${STORAGE_HOST} s3api put-bucket-acl --bucket file-storage --acl public-read
+	@AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY} AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} aws --endpoint-url=http://${STORAGE_HOST} --region=${AWS_REGION} s3 mb s3://${STORAGE_BUCKET}
+	@AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY} AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} aws --endpoint-url=http://${STORAGE_HOST} s3api put-bucket-acl --bucket file-storage --acl public-read
 .PHONY: create-test-bucket
 
 genmocks: ## generate mocks

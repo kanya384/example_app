@@ -25,14 +25,18 @@ func (uc *useCase) SetOptions(options Options) {
 	}
 }
 
-func (uc *useCase) PutFile(ctx context.Context, path string, fileName string, content []byte) (err error) {
+func (uc *useCase) PutFile(ctx context.Context, params PutFileParams) (err error) {
 	return
 }
 
-func (uc *useCase) DeleteFile(ctx context.Context, path string, fileName string) (err error) {
+func (uc *useCase) PutImageFile(ctx context.Context, params PutImageFileParams) (err error) {
 	return
 }
 
-func (uc *useCase) ListFilesInPath(ctx context.Context, path string) (files []string, err error) {
+func (uc *useCase) DeleteFile(ctx context.Context, params DeleteFileParams) (err error) {
+	return
+}
+
+func (uc *useCase) ListFilesInPath(ctx context.Context, params ListFilesInPathParams) (files []string, err error) {
 	return
 }

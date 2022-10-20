@@ -26,6 +26,7 @@ func NewStorage(key, bucket, endpoint, region string) *storage {
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(true),
 	}
+
 	sess := session.Must(session.NewSession(config))
 	client := s3.New(sess, config)
 
