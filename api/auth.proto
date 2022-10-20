@@ -84,7 +84,8 @@ message SignInRequest {
 }
 
 message SignInResponse {
-    string message = 1;
+    string token = 1;
+    string refreshToken = 2;
 }
 
 message DeviceRequest {

@@ -9,9 +9,9 @@ import (
 	"auth/internal/domain/user/email"
 	"auth/internal/domain/user/pass"
 	"auth/internal/domain/user/phone"
-	"auth/internal/usecase/adapters/cache"
-	"auth/internal/usecase/adapters/pubsub"
-	"auth/internal/usecase/adapters/storage"
+	"auth/internal/useCase/adapters/cache"
+	"auth/internal/useCase/adapters/pubsub"
+	"auth/internal/useCase/adapters/storage"
 	"auth/pkg/auth"
 	"auth/pkg/helpers"
 	"auth/pkg/logger"
@@ -37,7 +37,6 @@ const (
 var (
 	ErrInvalidRefresh = errors.New("refresh is invalid")
 	ErrUnknownDevice  = errors.New("unknown device, please relogin")
-	updateFunction    func(*device.Device) (*device.Device, error)
 )
 
 type useCase struct {

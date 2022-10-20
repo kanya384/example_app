@@ -15,7 +15,7 @@ test: ## runs unit and integration tests
 .PHONY: test
 
 genproto: ## generates go package from proto files
-	@protoc -I ./api ./api/auth.proto --go-grpc_out=./auth/internal/delivery/grpc/interface --go_out=./auth/internal/delivery/grpc/interface --grpc-gateway_out=./auth/internal/delivery/grpc/interface
+	@protoc -I ./api ./api/auth.proto --go-grpc_out=./services/auth/internal/delivery/grpc/interface --go_out=./services/auth/internal/delivery/grpc/interface --grpc-gateway_out=./services/auth/internal/delivery/grpc/interface
 	
 
 gengateway:

@@ -12,14 +12,15 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
 	github.com/jackc/pgx/v5 v5.0.1
 	github.com/segmentio/kafka-go v0.4.35
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.0
 	github.com/vrischmann/envconfig v1.3.0
-	google.golang.org/genproto v0.0.0-20220314164441-57ef72a4c106
+	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc
 	google.golang.org/grpc v1.49.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.28.1
 )
 
 require (
@@ -47,7 +48,7 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
 	golang.org/x/net v0.0.0-20220706163947-c90051bbdb60 // indirect
-	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
+	golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
