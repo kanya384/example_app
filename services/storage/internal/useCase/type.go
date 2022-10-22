@@ -8,28 +8,28 @@ type PutFileParams struct {
 }
 
 type PutImageFileParams struct {
-	path      string
-	name      string
-	format    string
-	bucket    string
-	maxWidth  int
-	maxHeight int
-	content   []byte
-	params    []ImageVersions
+	Path      string
+	Name      string
+	Format    string
+	Bucket    string
+	MaxWidth  int
+	MaxHeight int
+	Content   []byte
+	Versions  []ImageVersions
 }
 
 type ImageVersions struct {
-	maxWidth  int
-	maxHeight int
-	suffix    string
+	MaxWidth  int
+	MaxHeight int
+	Suffix    string
 }
 
 type DeleteFileParams struct {
-	filePath string
-	bucket   string
+	FilePath string
+	Bucket   string
 }
 
 type ListFilesInPathParams struct {
-	path   string
-	bucket string
+	Path   string
+	Bucket string
 }

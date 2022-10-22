@@ -3,7 +3,7 @@ package cloudStorage
 import (
 	"context"
 	"fmt"
-	"os"
+	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -15,7 +15,6 @@ import (
 
 type storage struct {
 	client *s3.S3
-	bucket string
 	key    string
 }
 
@@ -32,14 +31,13 @@ func NewStorage(key, bucket, endpoint, region string) *storage {
 
 	return &storage{
 		client: client,
-		bucket: bucket,
 		key:    key,
 	}
 }
 
-func (o *storage) PutObjectToStorage(ctx context.Context, path string, fileName string, fileContent *os.File) (err error) {
+func (o *storage) PutObjectToStorage(ctx context.Context, bucket, path, fileName string, fileContent io.ReadSeeker) (err error) {
 	_, err = o.client.PutObjectWithContext(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(o.bucket),
+		Bucket: aws.String(bucket),
 		Key:    aws.String(path + "/" + fileName),
 		Body:   fileContent,
 	})
@@ -55,9 +53,9 @@ func (o *storage) PutObjectToStorage(ctx context.Context, path string, fileName 
 	return
 }
 
-func (o *storage) ListObjects(ctx context.Context, prefix string) ([]*string, error) {
+func (o *storage) ListObjects(ctx context.Context, bucket, prefix string) ([]*string, error) {
 	list, err := o.client.ListObjects(&s3.ListObjectsInput{
-		Bucket: aws.String(o.bucket),
+		Bucket: aws.String(bucket),
 		Prefix: aws.String(prefix),
 	})
 	if err != nil {
@@ -70,11 +68,11 @@ func (o *storage) ListObjects(ctx context.Context, prefix string) ([]*string, er
 	return files, nil
 }
 
-func (o *storage) DeleteObject(ctx context.Context, path string, fileName string) error {
+func (o *storage) DeleteObject(ctx context.Context, bucket, path string) error {
 	_, err := o.client.DeleteObjectsWithContext(ctx, &s3.DeleteObjectsInput{
-		Bucket: aws.String(o.bucket),
+		Bucket: aws.String(bucket),
 		Delete: &s3.Delete{
-			Objects: []*s3.ObjectIdentifier{{Key: aws.String(path + "/" + fileName)}},
+			Objects: []*s3.ObjectIdentifier{{Key: aws.String(path)}},
 		},
 	})
 	return err
